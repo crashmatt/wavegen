@@ -9,6 +9,8 @@
 #include <portaudio.h>
 #include <pa_linux_alsa.h>
 
+#define NUM_SECONDS   	(10)
+
 #include <iostream>
 //#include <stdio.h>
 //#include <stdlib.h>
@@ -17,200 +19,20 @@
 #include <cmath>
 using namespace std;
 
+#include "wgmodulator.hpp"
 
 #include <stdio.h>
 #include <math.h>
 #include "portaudio.h"
-#define NUM_SECONDS   	(10)
-#define SAMPLE_RATE   	(11025)
-#define FRAME_SIZE	  	1024
-#define MAX_CHUNKS	  	3
-#define CHANNELS		2
-#define TABLE_LENGTH	1024
+
+#include "setup.hpp"
 
 #define uint unsigned int
 
 #define PI 3.14159265
 
-class wgmodulator{
-private:
-	enum modstate
-	{
-		MS_CONSTANT = 0,
-	    MS_ATTACK,
-	    MS_HOLD,
-	    MS_DECAY,
-	    MS_END,
-	};
+#include "wgwave.hpp"
 
-	float 	mod_period;
-	float 	attack_time;
-	float 	decay_time;
-	float 	hold_time;
-
-	float 	attack_step;
-	float	decay_step;
-
-	float 	modulation;		// modulation output
-	float 	mod_time;		// time into the modulation period
-	modstate mod_state;		// state
-
-	void modulate(void);
-
-public:
-	wgmodulator(void);
-	void timestep(void);
-	float get_modulation(void);
-	void set_attack(float time);
-	void set_decay(float time);
-	void set_hold(float time);
-	void set_period(float time);
-	void set_pulse_shape(float period, float attack, float hold, float decay);
-	void set_pulsing(void);
-	void set_constant(void);
-};
-
-wgmodulator::wgmodulator(void){
-	modulation = 1.0;
-	mod_time = 0.0;
-	mod_period = 1.0;
-	mod_state = MS_CONSTANT;
-
-	set_attack(0.0);
-	set_decay(0.0);
-}
-
-float wgmodulator::get_modulation(void) {return modulation;};
-
-void wgmodulator::set_attack(float time){
-	attack_time = time;
-	if(attack_time <= 1/SAMPLE_RATE) {
-		attack_step = 1.0;
-	}
-	else{
-		attack_step = SAMPLE_RATE / time;
-	}
-}
-
-void wgmodulator::set_decay(float time){
-	decay_time = time;
-	if(decay_time <= 1/SAMPLE_RATE) {
-		decay_step = 1.0;
-	}
-	else{
-		decay_step = SAMPLE_RATE / time;
-	}
-}
-
-void wgmodulator::set_pulse_shape(float period, float attack, float hold, float decay){
-	mod_period = period;
-	set_attack(attack);
-	set_decay(decay);
-	hold_time = hold;
-}
-
-void wgmodulator::set_pulsing(void){
-	if(mod_state == MS_CONSTANT) mod_state = MS_ATTACK;
-}
-
-void wgmodulator::set_constant(void){
-	mod_state = MS_CONSTANT;
-	modulation = 1.0;
-}
-
-void wgmodulator::modulate(void){
-	if( (mod_state == MS_END) and (mod_time <= (1/float(SAMPLE_RATE)) ) ){
-		mod_state = MS_ATTACK;
-	}
-
-	if(mod_state == MS_ATTACK){
-		modulation += attack_step;
-		if(modulation >= 1.0){
-			mod_state = MS_HOLD;
-			modulation = 1.0;
-		}
-	}
-
-	if( (mod_state == MS_HOLD) and (mod_time >= (attack_time + hold_time)) ){
-		mod_state = MS_DECAY;
-	}
-
-	if( mod_state == MS_DECAY){
-		modulation -= decay_step;
-		if(modulation <= 0.0){
-			modulation = 0.0;
-			mod_state = MS_END;
-		}
-	}
-}
-
-void wgmodulator::timestep(void){
-	modulate();
-
-	mod_time += (1 / (float) SAMPLE_RATE);
-	if(mod_time > mod_period) {
-		mod_time -= mod_period;
-	}
-}
-
-void wgmodulator::set_period(float time){ mod_period = time;};
-
-
-
-class wgwave{
-private:
-	uint wavesteps;
-	float* pbuffer;
-public:
-	wgwave();
-	void make_sin(uint steps);
-	float get_step(uint step);
-	float get_phase(float phase);
-	float get_phase_interp(float phase);
-};
-
-wgwave::wgwave(){
-	wavesteps = 0;
-	pbuffer = NULL;
-};
-
-void wgwave::make_sin(uint steps){
-	uint i;
-
-	if(pbuffer != NULL){
-		if(sizeof(pbuffer) != steps){
-			delete pbuffer;
-			pbuffer = NULL;
-		}
-	};
-
-	if(pbuffer == NULL){
-		pbuffer = new(float[steps]);
-	};
-
-	for(i=0; i<steps; i++){
-		pbuffer[i] = sin(i * (2 * PI) / steps);
-	};
-	wavesteps = steps;
-};
-
-float wgwave::get_step(uint step){
-	if(step >= wavesteps) return 0.0;
-
-	if(pbuffer != NULL){
-		return pbuffer[step];
-	}
-	else return 0.0;
-}
-
-
-float wgwave::get_phase(float phase){
-	if(pbuffer == NULL) return 0.0;
-	int step = int(phase * wavesteps);
-	if(step >= (int) wavesteps) step = 0;
-	if(step < 0) step = wavesteps - 1;
-	return pbuffer[step];
-};
 
 
 class wgchunk{

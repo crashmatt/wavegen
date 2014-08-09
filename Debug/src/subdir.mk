@@ -4,13 +4,19 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../src/wavegen.cpp 
+../src/wavegen.cpp \
+../src/wgmodulator.cpp \
+../src/wgwave.cpp 
 
 OBJS += \
-./src/wavegen.o 
+./src/wavegen.o \
+./src/wgmodulator.o \
+./src/wgwave.o 
 
 CPP_DEPS += \
-./src/wavegen.d 
+./src/wavegen.d \
+./src/wgmodulator.d \
+./src/wgwave.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
