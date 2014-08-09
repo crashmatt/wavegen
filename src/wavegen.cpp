@@ -6,6 +6,9 @@
 // Description : audio wave function generator
 //============================================================================
 
+#include <portaudio.h>
+#include <pa_linux_alsa.h>
+
 #include <iostream>
 //#include <stdio.h>
 //#include <stdlib.h>
