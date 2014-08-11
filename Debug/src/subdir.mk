@@ -4,16 +4,22 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../src/parsable.cpp \
+../src/parser.cpp \
 ../src/wavegen.cpp \
 ../src/wgmodulator.cpp \
 ../src/wgwave.cpp 
 
 OBJS += \
+./src/parsable.o \
+./src/parser.o \
 ./src/wavegen.o \
 ./src/wgmodulator.o \
 ./src/wgwave.o 
 
 CPP_DEPS += \
+./src/parsable.d \
+./src/parser.d \
 ./src/wavegen.d \
 ./src/wgmodulator.d \
 ./src/wgwave.d 
