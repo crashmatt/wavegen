@@ -9,6 +9,8 @@
 #ifndef WGMODULATOR_HPP
 #define WGMODULATOR_HPP
 
+#include "parsable.h"
+
 //#include <iostream>
 //#include <stdio.h>
 //#include <stdlib.h>
@@ -17,7 +19,7 @@
 using namespace std;
 
 
-class wgmodulator{
+class wgmodulator : public parsable{
 private:
 	enum modstate
 	{
@@ -53,6 +55,7 @@ public:
 	void set_pulse_shape(float period, float attack, float hold, float decay);
 	void set_pulsing(void);
 	void set_constant(void);
+	bool parse_variable(string varstr, string valstr);
 };
 
 #endif	// WGMODULATOR_HPP

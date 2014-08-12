@@ -16,7 +16,10 @@ class parsable {
 public:
 	parsable();
 	virtual ~parsable();
-	virtual bool parse(string str);
+	virtual bool parse_variable(string varstr, string valstr);
+	string get_name() {return name;};;
+protected:
+	string name;
 };
 
 #endif /* PARSABLE_H_ */

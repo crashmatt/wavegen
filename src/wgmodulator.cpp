@@ -13,6 +13,8 @@
 #include <pthread.h>
 #include <queue>
 #include <cmath>
+#include <string>
+#include <stdlib.h>
 using namespace std;
 
 
@@ -25,6 +27,8 @@ using namespace std;
 #define PI 3.14159265
 
 wgmodulator::wgmodulator(void){
+	name = "modulator";
+
 	modulation = 1.0;
 	mod_time = 0.0;
 	mod_period = 1.0;
@@ -110,3 +114,32 @@ void wgmodulator::timestep(void){
 void wgmodulator::set_period(float time){ mod_period = time;};
 
 
+bool wgmodulator::parse_variable(string varstr, string valstr){
+
+	if(varstr == "attack"){
+		attack_time = strtof(valstr.c_str(), NULL );	//
+		return true;
+	}
+	else if(varstr == "decay"){
+		decay_time = strtof(valstr.c_str(), NULL );	//
+		return true;
+	}
+	else if( (varstr == "sustain") or (varstr == "hold")){
+		hold_time = strtof(valstr.c_str(), NULL );	//
+		return true;
+	}
+	else if(varstr == "period"){
+		mod_period = strtof(valstr.c_str(), NULL );	//
+		return true;
+	}
+	else if(varstr == "pulsing"){
+		if(mod_state == MS_CONSTANT) mod_state = MS_ATTACK;
+		return true;
+	}
+	else if(varstr == "constant"){
+		mod_state = MS_CONSTANT;
+		return true;
+	}
+	else
+		return false;
+}

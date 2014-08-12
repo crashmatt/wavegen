@@ -8,8 +8,10 @@
 #ifndef WGWAVE_HPP_
 #define WGWAVE_HPP_
 
+#include "parsable.h"
 
-class wgwave{
+
+class wgwave : public parsable{
 private:
 	unsigned int wavesteps;
 	float* pbuffer;
@@ -19,6 +21,7 @@ public:
 	float get_step(unsigned int step);
 	float get_phase(float phase);
 	float get_phase_interp(float phase);
+	bool parse_variable(string varstr, string valstr);
 };
 
 

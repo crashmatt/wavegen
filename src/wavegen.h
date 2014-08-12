@@ -36,15 +36,16 @@ private:
 
 
 public:
-	float left_phase;
-	float right_phase;
 	wavegen();
 	virtual ~wavegen();
+//	float left_phase;
+//	float right_phase;
 	void time_step();
 	void set_frequency(float freq);
 	float get_waveout();
 	void push_command(char* line);
 	void parse_all(void);
+	bool parse_variable(string varstr, string valstr);
 };
 
 

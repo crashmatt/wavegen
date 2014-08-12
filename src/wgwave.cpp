@@ -8,16 +8,20 @@
 #include <iostream>
 #include "wgwave.hpp"
 #include <cmath>
+#include <string>
 using namespace std;
 
 #define PI 3.14159265
 
 wgwave::wgwave(){
+	name = "wave";
+
 	wavesteps = 0;
 	pbuffer = NULL;
 };
 
 void wgwave::make_sin(unsigned int steps){
+
 	unsigned int i;
 
 	if(pbuffer != NULL){
@@ -55,5 +59,7 @@ float wgwave::get_phase(float phase){
 	return pbuffer[step];
 };
 
-
+bool wgwave::parse_variable(string varstr, string valstr){
+	return false;
+}
 

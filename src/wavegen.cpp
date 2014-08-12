@@ -14,10 +14,11 @@
 
 #include <iostream>
 //#include <stdio.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <queue>
 #include <cmath>
+#include <string>
 
 // sockets
 //#include <sys/socket.h>
@@ -67,6 +68,8 @@ wgchunk::wgchunk()
 
 
 wavegen::wavegen(){
+	name = "wavegen";
+
 	output = 0.0;
 	phase = 0;
 	amplitude = 0.1;
@@ -78,7 +81,9 @@ wavegen::wavegen(){
 	modulator.set_pulse_shape(0.2, 0.01, 0.05, 0.01);
 	modulator.set_pulsing();
 
-	wg_parser.parse("blah");//.add_parsable(this);
+	wg_parser.add_parsable(this);
+	wg_parser.add_parsable(&modulator);
+	wg_parser.add_parsable(&wave);
 }
 
 wavegen::~wavegen(){
@@ -106,7 +111,6 @@ void wavegen::push_command(char* line){
 }
 
 void wavegen::parse_all(void){
-	int command;
 	string cmd;
 
 	while(parseq.empty() == false){
@@ -117,19 +121,24 @@ void wavegen::parse_all(void){
 
 }
 
+bool wavegen::parse_variable(string varstr, string valstr){
+
+	if(varstr == "amplitude"){
+		amplitude = strtof(valstr.c_str(), NULL );	//
+		return true;
+	}
+	else if(varstr == "frequency"){
+		frequency = strtof(valstr.c_str(), NULL );	//
+		return true;
+	}
+	else
+		return false;
+}
+
+
+
 //Prototype for wavegen thread
 void *wave_gen_main(void *);
-
-
-/*
-typedef struct
-{
-    float left_phase;
-    float right_phase;
-}
-paTestData;
-*/
-
 
 
 /* This routine will be called by the PortAudio engine when audio is needed.
@@ -155,13 +164,6 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
         *out++ = wgen->get_waveout();  /* left */
         *out++ = wgen->get_waveout();  /* right */
     	wgen->time_step();
-        /* Generate simple sawtooth phaser that ranges between -1.0 and 1.0. */
-//        wgen->left_phase += 0.01f;
-        /* When signal reaches top, drop back down. */
-//        if( wgen->left_phase >= 1.0f ) wgen->left_phase -= 2.0f;
-        /* higher pitch so we can distinguish left and right. */
-//        wgen->right_phase += 0.03f;
-//        if( wgen->right_phase >= 1.0f ) wgen->right_phase -= 2.0f;
     }
     return 0;
 }
@@ -172,18 +174,12 @@ int main(void);
 int main(void)
 {
 	/* this variable is our reference to the waveform generator thread */
-	pthread_t wg_thread;
-	pthread_t wg_comm_thread;
+//	pthread_t wg_thread;
+//	pthread_t wg_comm_thread;
 
 	wavegen wgen = wavegen();
     PaStream *stream;
     PaError err;
-
-    // udp socket variables
-//    int sockfd,n;
-//    struct sockaddr_in servaddr,cliaddr;
-//    socklen_t len;
-//    sockfd=socket(AF_INET,SOCK_DGRAM,0);
 
     char mesg[1000];
 
@@ -196,11 +192,7 @@ int main(void)
 //    size_t len = 0;
 //    ssize_t read;
 
-    // JSON value and root objects for communication parsing
-//	JSONValue *jsonval = NULL;
-//	JSONObject jsonroot;
 
-//    printf("PortAudio Test: output sawtooth wave.\n");
 
 #if (DISABLE_SOUND != 1)
     /* Initialize library before making any other calls. */
@@ -232,34 +224,6 @@ int main(void)
 
 #endif //(DISABLE_SOUND != 1)
 
-/*
-    sockfd=socket(AF_INET,SOCK_DGRAM,0);
-    bzero(&servaddr,sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr=htonl(INADDR_LOOPBACK);	// localhost
-    servaddr.sin_port=htons(14560);
-    bind(sockfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
-
-    for (;;)
-    {
-       len = sizeof(cliaddr);
-       n = recvfrom(sockfd,mesg,1000,0,(struct sockaddr *)&cliaddr,&len);
-//       sendto(sockfd,mesg,n,0,(struct sockaddr *)&cliaddr,sizeof(cliaddr));
-//       printf("-------------------------------------------------------\n");
-       mesg[n] = 0;
-//       printf("Received the following:\n");
-       printf("%s",mesg);
-//       printf("-------------------------------------------------------\n");
-    }
-*/
-	// Parse data
-//    jsonval = JSON::Parse(EXAMPLE);
-//    if(jsonval == NULL){
-//    	printf("json parse failure");
-//    }
-//    else{
-//    	jsonroot = jsonval->AsObject()
-//    }
 
     status = stat("wavegen.fifo", &buffer);
     if(status != 0){
@@ -268,24 +232,6 @@ int main(void)
         	printf("error creating fifo");
         }
     }
-
-/*    fifo = open("wavegen.fifo", O_RDONLY);
-
-    if(fifo < 0){
-    	printf("\n %s \n", strerror(errno));
-    }
-
-
-    while(fifo >= 0)
-    {
-//    	num = read(fifo, mesg, 10);
-    	if(num > 0){
-        	printf("received messge : ");
-        	printf(mesg);
-        	printf("\n");
-    	}
-    	free(line);
-    }*/
 
     pfifoFile = fopen("wavegen.fifo", "r");
 
@@ -298,7 +244,9 @@ int main(void)
 
     }
 
-
+//    pipein = open(pipe_name, 'r')
+//    while True:
+//        line = pipein.readline()[:-1]
 
     /* Sleep for several seconds. */
 //    Pa_Sleep(NUM_SECONDS*1000);

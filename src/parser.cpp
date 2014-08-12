@@ -24,12 +24,24 @@ parser::~parser() {
 
 bool parser::parse(string str){
 	int i;
+	string module, variable, value;
+	size_t pos = 0;
 
 	printf("parser parsing string : ");
 	printf(str.c_str());
 
+	pos = str.find(':');
+	module = str.substr(0, pos);
+	str.erase(0, pos+1);
+	pos = str.find(':');
+	variable = str.substr(0, pos);
+	str.erase(0, pos+1);
+	value = str;
+
 	for(i=0; i<parse_list.size(); i++ ){
-		parse_list[i]->parse(str);
+		if(parse_list[i]->get_name() == module){
+			parse_list[i]->parse_variable(variable, value);
+		}
 	}
 	return true;
 }

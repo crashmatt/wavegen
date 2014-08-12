@@ -13,12 +13,13 @@ using namespace std;
 #include "parsable.h"
 
 parsable::parsable() {
+	name = "null";
 }
 
 parsable::~parsable() {
 }
 
-bool parsable::parse(string str){
-	printf("no parser available/n");
+bool parsable::parse_variable(string varstr, string valstr){
+	printf("no variable parser available/n");
 	return false;
 }
