@@ -28,6 +28,7 @@ private:
 	    MS_HOLD,
 	    MS_DECAY,
 	    MS_END,
+	    MS_MUTE,
 	};
 
 	float 	mod_period;
@@ -55,6 +56,7 @@ public:
 	void set_pulse_shape(float period, float attack, float hold, float decay);
 	void set_pulsing(void);
 	void set_constant(void);
+	void set_mute(void);
 	bool parse_variable(string varstr, string valstr);
 };
 

@@ -73,8 +73,12 @@ void wgmodulator::set_pulsing(void){
 
 void wgmodulator::set_constant(void){
 	mod_state = MS_CONSTANT;
-	modulation = 1.0;
 }
+
+void wgmodulator::set_mute(void){
+	mod_state = MS_MUTE;
+}
+
 
 void wgmodulator::modulate(void){
 	if( (mod_state == MS_END) and (mod_time <= (1/float(SAMPLE_RATE)) ) ){
@@ -100,6 +104,21 @@ void wgmodulator::modulate(void){
 			mod_state = MS_END;
 		}
 	}
+
+	if( mod_state == MS_MUTE){
+		modulation -= decay_step;
+		if(modulation <= 0.0){
+			modulation = 0.0;
+		}
+	}
+
+	if( mod_state == MS_CONSTANT){
+		modulation += attack_step;
+		if(modulation >= 1.0){
+			modulation = 1.0;
+		}
+	}
+
 }
 
 void wgmodulator::timestep(void){
@@ -115,13 +134,15 @@ void wgmodulator::set_period(float time){ mod_period = time;};
 
 
 bool wgmodulator::parse_variable(string varstr, string valstr){
-
+	float val;
 	if(varstr == "attack"){
-		attack_time = strtof(valstr.c_str(), NULL );	//
+		val = strtof(valstr.c_str(), NULL );	//
+		set_attack(val);
 		return true;
 	}
 	else if(varstr == "decay"){
-		decay_time = strtof(valstr.c_str(), NULL );	//
+		val = strtof(valstr.c_str(), NULL );	//
+		set_decay(val);
 		return true;
 	}
 	else if( (varstr == "sustain") or (varstr == "hold")){
@@ -133,11 +154,15 @@ bool wgmodulator::parse_variable(string varstr, string valstr){
 		return true;
 	}
 	else if(varstr == "pulsing"){
-		if(mod_state == MS_CONSTANT) mod_state = MS_ATTACK;
+		set_pulsing();
 		return true;
 	}
 	else if(varstr == "constant"){
-		mod_state = MS_CONSTANT;
+		set_constant();
+		return true;
+	}
+	else if(varstr == "mute"){
+		set_mute();
 		return true;
 	}
 	else

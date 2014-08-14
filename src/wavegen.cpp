@@ -48,8 +48,6 @@ using namespace std;
 #define PI 3.14159265
 
 
-
-
 class wgchunk{
 public:
 	wgchunk();
@@ -124,11 +122,11 @@ void wavegen::parse_all(void){
 bool wavegen::parse_variable(string varstr, string valstr){
 
 	if(varstr == "amplitude"){
-		amplitude = strtof(valstr.c_str(), NULL );	//
+		amplitude = strtof(valstr.c_str(), NULL );
 		return true;
 	}
 	else if(varstr == "frequency"){
-		frequency = strtof(valstr.c_str(), NULL );	//
+		set_frequency(strtof(valstr.c_str(), NULL ));
 		return true;
 	}
 	else
