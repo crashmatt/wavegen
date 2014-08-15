@@ -33,6 +33,7 @@ wgmodulator::wgmodulator(void){
 	mod_time = 0.0;
 	mod_period = 1.0;
 	mod_state = MS_CONSTANT;
+	hold_time = 0.1;
 
 	set_attack(0.0);
 	set_decay(0.0);
@@ -68,7 +69,7 @@ void wgmodulator::set_pulse_shape(float period, float attack, float hold, float 
 }
 
 void wgmodulator::set_pulsing(void){
-	if(mod_state == MS_CONSTANT) mod_state = MS_ATTACK;
+	if( (mod_state == MS_CONSTANT) or (mod_state == MS_MUTE) ) mod_state = MS_PULSE_PAUSE;
 }
 
 void wgmodulator::set_constant(void){
@@ -81,8 +82,11 @@ void wgmodulator::set_mute(void){
 
 
 void wgmodulator::modulate(void){
-	if( (mod_state == MS_END) and (mod_time <= (1/float(SAMPLE_RATE)) ) ){
+	float off_time = mod_period - attack_time - decay_time - hold_time;
+
+	if( (mod_state == MS_PULSE_PAUSE) and (mod_time >= off_time ) ){
 		mod_state = MS_ATTACK;
+		mod_time -= off_time;
 	}
 
 	if(mod_state == MS_ATTACK){
@@ -90,18 +94,21 @@ void wgmodulator::modulate(void){
 		if(modulation >= 1.0){
 			mod_state = MS_HOLD;
 			modulation = 1.0;
+			mod_time -= attack_time;
 		}
 	}
 
-	if( (mod_state == MS_HOLD) and (mod_time >= (attack_time + hold_time)) ){
+	if( (mod_state == MS_HOLD) and (mod_time >= hold_time) ){
 		mod_state = MS_DECAY;
+		mod_time -= hold_time;
 	}
 
 	if( mod_state == MS_DECAY){
 		modulation -= decay_step;
 		if(modulation <= 0.0){
 			modulation = 0.0;
-			mod_state = MS_END;
+			mod_state = MS_PULSE_PAUSE;
+			mod_time = 0;
 		}
 	}
 

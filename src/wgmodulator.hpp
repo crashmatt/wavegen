@@ -24,10 +24,11 @@ private:
 	enum modstate
 	{
 		MS_CONSTANT = 0,
+		MS_PULSE_PAUSE,
 	    MS_ATTACK,
 	    MS_HOLD,
 	    MS_DECAY,
-	    MS_END,
+//	    MS_END,
 	    MS_MUTE,
 	};
 

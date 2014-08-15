@@ -239,6 +239,10 @@ int main(void)
         	printf(mesg);
         	wgen.push_command(mesg);
     	}
+    	else{
+    		Pa_Sleep(10);
+    	}
+
 
     }
 
