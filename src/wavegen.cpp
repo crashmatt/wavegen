@@ -13,12 +13,13 @@
 #define DISABLE_SOUND 0
 
 #include <iostream>
-//#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <queue>
 #include <cmath>
 #include <string>
+#include <cstring>
 
 // sockets
 //#include <sys/socket.h>
@@ -190,7 +191,21 @@ int main(void)
 //    size_t len = 0;
 //    ssize_t read;
 
+    char* pPath = getenv ("HOME");
+    strcpy(mesg, pPath);
+    strcat(mesg,"/wavegen.fifo");
 
+    fprintf(stderr, "fifo path : ", mesg, "/n");
+    fprintf(stderr, mesg);
+    fprintf(stderr, "\n");
+
+    status = stat(mesg, &buffer);
+    if(status != 0){
+        status = mkfifo(mesg, 0666);
+        if (status < 0) {
+        	printf("error creating fifo at :", mesg, "/n");
+        }
+    }
 
 #if (DISABLE_SOUND != 1)
     /* Initialize library before making any other calls. */
@@ -222,16 +237,8 @@ int main(void)
 
 #endif //(DISABLE_SOUND != 1)
 
-
-    status = stat("wavegen.fifo", &buffer);
-    if(status != 0){
-        status = mkfifo("wavegen.fifo", 0666);
-        if (status < 0) {
-        	printf("error creating fifo");
-        }
-    }
-
-    pfifoFile = fopen("wavegen.fifo", "r");
+    printf("opening fifo :", mesg);
+    pfifoFile = fopen(mesg, "r");
 
     while(pfifoFile != NULL){
     	if(fgets(mesg, 100, pfifoFile) != NULL){
@@ -242,8 +249,6 @@ int main(void)
     	else{
     		Pa_Sleep(10);
     	}
-
-
     }
 
 //    pipein = open(pipe_name, 'r')
