@@ -19,7 +19,6 @@
 #include <queue>
 #include <cmath>
 #include <string>
-#include <cstring>
 
 // sockets
 //#include <sys/socket.h>
@@ -249,6 +248,8 @@ int main(void)
     	else{
     		Pa_Sleep(10);
     	}
+
+
     }
 
 //    pipein = open(pipe_name, 'r')
