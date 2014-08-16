@@ -222,16 +222,17 @@ int main(void)
 
 #endif //(DISABLE_SOUND != 1)
 
+#define FIFO_PATH "wavegen.fifo"
 
-    status = stat("wavegen.fifo", &buffer);
+    status = stat(FIFO_PATH, &buffer);
     if(status != 0){
-        status = mkfifo("wavegen.fifo", 0666);
+        status = mkfifo(FIFO_PATH, 0666);
         if (status < 0) {
         	printf("error creating fifo");
         }
     }
 
-    pfifoFile = fopen("wavegen.fifo", "r");
+    pfifoFile = fopen(FIFO_PATH, "r");
 
     while(pfifoFile != NULL){
     	if(fgets(mesg, 100, pfifoFile) != NULL){
