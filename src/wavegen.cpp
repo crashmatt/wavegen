@@ -19,6 +19,7 @@
 #include <queue>
 #include <cmath>
 #include <string>
+#include <cstring>
 
 // sockets
 //#include <sys/socket.h>
@@ -48,21 +49,6 @@ using namespace std;
 #define PI 3.14159265
 
 
-class wgchunk{
-public:
-	wgchunk();
-	float buffer[CHANNELS*FRAME_SIZE];
-};
-
-
-wgchunk::wgchunk()
-{
-	uint i;
-	for(i=0; i<sizeof(buffer); i++){
-		buffer[i] = 0.0;
-	}
-}
-
 
 
 wavegen::wavegen(){
@@ -76,7 +62,7 @@ wavegen::wavegen(){
 
 	set_frequency(250.0);
 	wave.make_sin(TABLE_LENGTH);
-	modulator.set_pulse_shape(0.2, 0.01, 0.05, 0.01);
+	modulator.set_pulse_shape(1.0, 0.01, 0.05, 0.01);
 	modulator.set_pulsing();
 
 	wg_parser.add_parsable(this);
@@ -135,8 +121,8 @@ bool wavegen::parse_variable(string varstr, string valstr){
 
 
 
-//Prototype for wavegen thread
-void *wave_gen_main(void *);
+//Prototype for wave chunk generator thread
+void *chunk_generator(void *);
 
 
 /* This routine will be called by the PortAudio engine when audio is needed.
@@ -172,15 +158,13 @@ int main(void);
 int main(void)
 {
 	/* this variable is our reference to the waveform generator thread */
-//	pthread_t wg_thread;
-//	pthread_t wg_comm_thread;
+//	pthread_t chunkgen_thread;
 
 	wavegen wgen = wavegen();
     PaStream *stream;
     PaError err;
 
     char mesg[1000];
-
 
     // named pipe
     int num, fifo, status;
@@ -212,12 +196,10 @@ int main(void)
     if( err != paNoError ) goto error;
 
     /* create a thread executing wave generation */
-    /*    if(pthread_create(&wg_thread, NULL, wave_gen_main, 0)) {
-        	fprintf(stderr, "Error declared creating thread\n");
-        	return 1;
-        }
-    */
-
+//    if(pthread_create(&chunkgen_thread, NULL, chunk_generator, 0)) {
+//    	fprintf(stderr, "Error declared creating chunck generatorthread\n");
+//    	return 1;
+//    }
 
     /* Open an audio I/O stream. */
     err = Pa_OpenDefaultStream( &stream,
@@ -241,30 +223,23 @@ int main(void)
 
     while(pfifoFile != NULL){
     	if(fgets(mesg, 100, pfifoFile) != NULL){
-        	printf("received messge : ");
+//       	printf("received messge : ");
         	printf(mesg);
         	wgen.push_command(mesg);
     	}
     	else{
+    		//Wait 10ms before checking fifo again
     		Pa_Sleep(10);
     	}
 
 
     }
 
-//    pipein = open(pipe_name, 'r')
-//    while True:
-//        line = pipein.readline()[:-1]
-
-    /* Sleep for several seconds. */
-//    Pa_Sleep(NUM_SECONDS*1000);
-
-
     /* wait for the second thread to finish */
-/*    if(pthread_join(wg_comm_thread, NULL)) {
-    	fprintf(stderr, "Error joining wave communication thread\n");
-    }
-*/
+//    if(pthread_join(chunkgen_thread, NULL)) {
+//    	fprintf(stderr, "Error joining wave communication thread\n");
+//    }
+
 
 #if (DISABLE_SOUND != 1)
     err = Pa_StopStream( stream );
@@ -285,16 +260,10 @@ error:
 }
 
 
-void *wave_gen_main(void *void_ptr)
+void *chunk_generator(void *void_ptr)
 {
 	printf("Start wave generator\n");
-	sleep(5);
 	printf("End wave generator\n");
+	return NULL;
 }
 
-void *wg_comm_main(void *void_ptr)
-{
-	printf("Start wave generator\n");
-	sleep(5);
-	printf("End wave generator\n");
-}

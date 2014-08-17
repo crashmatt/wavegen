@@ -16,6 +16,7 @@ using namespace std;
 
 #include "wgwave.hpp"
 #include "wgmodulator.hpp"
+#include "wgchunk.h"
 
 
 class wavegen : public parsable{
@@ -27,7 +28,7 @@ private:
 	float output;
 
 	float modulation_time;
-//	queue <wgchunk> chunks;
+	queue <wgchunk> chunks;
 	queue <string> parseq;
 	wgwave wave;
 	wgmodulator modulator;
@@ -38,8 +39,6 @@ private:
 public:
 	wavegen();
 	virtual ~wavegen();
-//	float left_phase;
-//	float right_phase;
 	void time_step();
 	void set_frequency(float freq);
 	float get_waveout();
