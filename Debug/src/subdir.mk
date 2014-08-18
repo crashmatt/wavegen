@@ -8,6 +8,7 @@ CPP_SRCS += \
 ../src/parser.cpp \
 ../src/wavegen.cpp \
 ../src/wgchunk.cpp \
+../src/wgen_app.cpp \
 ../src/wgmodulator.cpp \
 ../src/wgwave.cpp 
 
@@ -16,6 +17,7 @@ OBJS += \
 ./src/parser.o \
 ./src/wavegen.o \
 ./src/wgchunk.o \
+./src/wgen_app.o \
 ./src/wgmodulator.o \
 ./src/wgwave.o 
 
@@ -24,6 +26,7 @@ CPP_DEPS += \
 ./src/parser.d \
 ./src/wavegen.d \
 ./src/wgchunk.d \
+./src/wgen_app.d \
 ./src/wgmodulator.d \
 ./src/wgwave.d 
 
