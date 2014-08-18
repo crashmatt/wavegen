@@ -29,7 +29,7 @@ using namespace std;
 wgmodulator::wgmodulator(void){
 	name = "modulator";
 
-	modulation = 1.0;
+	modulation = 0.0;
 	mod_time = 0.0;
 	mod_period = 1.0;
 	mod_state = MS_CONSTANT;

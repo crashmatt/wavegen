@@ -62,7 +62,7 @@ wavegen::wavegen(){
 
 	set_frequency(250.0);
 	wave.make_sin(TABLE_LENGTH);
-	modulator.set_pulse_shape(1.0, 0.01, 0.05, 0.01);
+	modulator.set_pulse_shape(5.0, 0.01, 0.05, 0.01);
 	modulator.set_pulsing();
 
 	wg_parser.add_parsable(this);
