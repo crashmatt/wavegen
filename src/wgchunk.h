@@ -15,6 +15,7 @@ public:
 	wgchunk();
 	virtual ~wgchunk();
 	float buffer[CHANNELS*FRAME_SIZE];
+//	wgchunk operator=(const wgchunk& other);
 };
 
 #endif /* WGCHUNK_H_ */

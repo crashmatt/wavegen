@@ -39,13 +39,15 @@ using namespace std;
 #include "portaudio.h"
 
 #include "parser.h"
-
 #include "setup.hpp"
 
 #define uint unsigned int
 
 #define PI 3.14159265
 
+
+//Prototype for wave chunk generator thread
+void *chunk_generator(void *);
 
 
 
@@ -66,9 +68,23 @@ wavegen::wavegen(){
 	wg_parser.add_parsable(this);
 	wg_parser.add_parsable(&modulator);
 	wg_parser.add_parsable(&wave);
+
+	chunkgen_exit = false;
+
+	/* create a thread executing wave generation */
+    if(pthread_create(&chunkgen_thread, NULL, chunk_generator, this)) {
+    	fprintf(stderr, "Error creating chunk generator thread\n");
+    }
+
 }
 
 wavegen::~wavegen(){
+	chunkgen_exit = true;
+
+    /* wait for the second thread to finish */
+    if(pthread_join(chunkgen_thread, NULL)) {
+    	fprintf(stderr, "Error joining chunk generation thread\n");
+    }
 }
 
 void wavegen::set_frequency(float freq){
@@ -119,12 +135,27 @@ bool wavegen::parse_variable(string varstr, string valstr){
 
 
 
-//Prototype for wave chunk generator thread
-void *chunk_generator(void *);
-
 void *chunk_generator(void *void_ptr)
 {
+	wavegen* pwgen = (wavegen*) void_ptr;
+	wgchunk cnk;
+
+	float step = 0;
+
 	printf("Start wave generator\n");
+	while(pwgen->get_exit_request() == false){
+		if(pwgen->chunks.size() < 2){
+			pwgen->parse_all();
+
+			for(int i = 0; i < FRAME_SIZE; i++){
+				pwgen->time_step();
+				cnk.buffer[i*2] = pwgen->get_waveout();
+				cnk.buffer[(i*2)+1] = pwgen->get_waveout();
+			}
+			pwgen->chunks.push(cnk);
+		}
+		Pa_Sleep(10);
+	}
 	printf("End wave generator\n");
 	return NULL;
 }

@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <string>
 #include <cstring>
-#include <pthread.h>
 #include <queue>
 
 //Named pipes
@@ -24,6 +23,7 @@
 #include <errno.h>
 
 using namespace std;
+
 
 
 /* This routine will be called by the PortAudio engine when audio is needed.
@@ -42,14 +42,28 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
     unsigned int i;
     (void) inputBuffer; /* Prevent unused variable warning. */
 
-    wgen->parse_all();
+    wgchunk* pcnk;
+    if(not wgen->chunks.empty()){
+    	pcnk = &wgen->chunks.front();
+    	for(i=0; i < CHANNELS*FRAME_SIZE; i++){
+    		out[i] = pcnk->buffer[i];
+    	}
+//        memcpy(outputBuffer, pcnk->buffer, sizeof(float)*CHANNELS*FRAME_SIZE);
+    	wgen->chunks.pop();
+    }
+    else
+    {
+    	memset(outputBuffer, 0, sizeof(float)*CHANNELS*FRAME_SIZE);
+    }
 
+/*
     for( i=0; i<framesPerBuffer; i++ )
     {
-        *out++ = wgen->get_waveout();  /* left */
-        *out++ = wgen->get_waveout();  /* right */
+        *out++ = wgen->get_waveout();  // left
+        *out++ = wgen->get_waveout();  // right
     	wgen->time_step();
     }
+*/
     return 0;
 }
 
@@ -58,9 +72,6 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 int main(void);
 int main(void)
 {
-	/* this variable is our reference to the waveform generator thread */
-//	pthread_t chunkgen_thread;
-
 	wavegen wgen = wavegen();
     PaStream *stream;
     PaError err;
@@ -68,7 +79,7 @@ int main(void)
     char mesg[1000];
 
     // named pipe
-    int num, fifo, status;
+    int status;
     struct stat   buffer;
 //    char* line = NULL;
     FILE * pfifoFile = NULL;
@@ -79,7 +90,7 @@ int main(void)
     strcpy(mesg, pPath);
     strcat(mesg,"/wavegen.fifo");
 
-    fprintf(stderr, "fifo path : ", mesg, "/n");
+    fprintf(stderr, "fifo path : ");
     fprintf(stderr, mesg);
     fprintf(stderr, "\n");
 
@@ -87,7 +98,9 @@ int main(void)
     if(status != 0){
         status = mkfifo(mesg, 0666);
         if (status < 0) {
-        	printf("error creating fifo at :", mesg, "/n");
+        	fprintf(stderr, "error creating fifo at :");
+        	fprintf(stderr , mesg);
+        	fprintf(stderr , "/n");
         }
     }
 
@@ -96,11 +109,6 @@ int main(void)
     err = Pa_Initialize();
     if( err != paNoError ) goto error;
 
-    /* create a thread executing wave generation */
-//    if(pthread_create(&chunkgen_thread, NULL, chunk_generator, 0)) {
-//    	fprintf(stderr, "Error declared creating chunck generatorthread\n");
-//    	return 1;
-//    }
 
     /* Open an audio I/O stream. */
     err = Pa_OpenDefaultStream( &stream,
@@ -119,13 +127,15 @@ int main(void)
 
 #endif //(DISABLE_SOUND != 1)
 
-    printf("opening fifo :", mesg);
+    fprintf(stderr, "opening fifo :");
+    fprintf(stderr, mesg);
+    fprintf(stderr, "\n");
     pfifoFile = fopen(mesg, "r");
 
     while(pfifoFile != NULL){
     	if(fgets(mesg, 100, pfifoFile) != NULL){
 //       	printf("received messge : ");
-        	printf(mesg);
+        	fprintf(stderr, mesg);
         	wgen.push_command(mesg);
     	}
     	else{
@@ -136,10 +146,6 @@ int main(void)
 
     }
 
-    /* wait for the second thread to finish */
-//    if(pthread_join(chunkgen_thread, NULL)) {
-//    	fprintf(stderr, "Error joining wave communication thread\n");
-//    }
 
 
 #if (DISABLE_SOUND != 1)
