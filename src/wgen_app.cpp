@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string>
 #include <cstring>
 #include <queue>
@@ -24,7 +25,7 @@
 
 using namespace std;
 
-
+time_t timeout = 0;
 
 /* This routine will be called by the PortAudio engine when audio is needed.
 ** It may called at interrupt level on some machines so don't do anything
@@ -45,25 +46,18 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
     wgchunk* pcnk;
     if(not wgen->chunks.empty()){
     	pcnk = &wgen->chunks.front();
-    	for(i=0; i < CHANNELS*FRAME_SIZE; i++){
+//    	for(i=0; i < CHANNELS*FRAME_SIZE; i++){
+    	for(i=0; i < FRAME_SIZE; i++){
     		out[i] = pcnk->buffer[i];
     	}
-//        memcpy(outputBuffer, pcnk->buffer, sizeof(float)*CHANNELS*FRAME_SIZE);
     	wgen->chunks.pop();
     }
     else
     {
-    	memset(outputBuffer, 0, sizeof(float)*CHANNELS*FRAME_SIZE);
+    	memset(outputBuffer, 0, sizeof(float)*FRAME_SIZE);
+//    	memset(outputBuffer, 0, sizeof(float)*CHANNELS*FRAME_SIZE);
     }
 
-/*
-    for( i=0; i<framesPerBuffer; i++ )
-    {
-        *out++ = wgen->get_waveout();  // left
-        *out++ = wgen->get_waveout();  // right
-    	wgen->time_step();
-    }
-*/
     return 0;
 }
 
@@ -81,10 +75,7 @@ int main(void)
     // named pipe
     int status;
     struct stat   buffer;
-//    char* line = NULL;
     FILE * pfifoFile = NULL;
-//    size_t len = 0;
-//    ssize_t read;
 
     char* pPath = getenv ("HOME");
     strcpy(mesg, pPath);
@@ -113,14 +104,13 @@ int main(void)
     /* Open an audio I/O stream. */
     err = Pa_OpenDefaultStream( &stream,
                                 0,          /* no input channels */
-                                2,          /* stereo output */
+                                1,   /* channels */
                                 paFloat32,  /* 32 bit floating point output */
                                 SAMPLE_RATE,
                                 FRAME_SIZE, /* frames per buffer */
                                 patestCallback,
                                 &wgen );
     if( err != paNoError ) goto error;
-
 
     err = Pa_StartStream( stream );
     if( err != paNoError ) goto error;
@@ -134,8 +124,6 @@ int main(void)
 
     while(pfifoFile != NULL){
     	if(fgets(mesg, 100, pfifoFile) != NULL){
-//       	printf("received messge : ");
-        	fprintf(stderr, mesg);
         	wgen.push_command(mesg);
     	}
     	else{

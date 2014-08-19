@@ -14,7 +14,8 @@ class wgchunk {
 public:
 	wgchunk();
 	virtual ~wgchunk();
-	float buffer[CHANNELS*FRAME_SIZE];
+	float buffer[FRAME_SIZE];
+//	float buffer[CHANNELS*FRAME_SIZE];
 //	wgchunk operator=(const wgchunk& other);
 };
 

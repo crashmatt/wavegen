@@ -6,6 +6,8 @@
 // Description : audio wave function generator
 //============================================================================
 
+#include "setup.hpp"
+
 #include <portaudio.h>
 #include <pa_linux_alsa.h>
 
@@ -21,15 +23,6 @@
 #include <string>
 #include <cstring>
 
-// sockets
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-
-//Named pipes
-//#include <sys/types.h>  // mkfifo
-//#include <sys/stat.h>   // mkfifo
-//#include <fcntl.h>
-//#include <errno.h>
 
 using namespace std;
 
@@ -39,7 +32,6 @@ using namespace std;
 #include "portaudio.h"
 
 #include "parser.h"
-#include "setup.hpp"
 
 #define uint unsigned int
 
@@ -140,8 +132,6 @@ void *chunk_generator(void *void_ptr)
 	wavegen* pwgen = (wavegen*) void_ptr;
 	wgchunk cnk;
 
-	float step = 0;
-
 	printf("Start wave generator\n");
 	while(pwgen->get_exit_request() == false){
 		if(pwgen->chunks.size() <= CHUNK_QUEUE_SIZE){
@@ -149,8 +139,11 @@ void *chunk_generator(void *void_ptr)
 
 			for(int i = 0; i < FRAME_SIZE; i++){
 				pwgen->time_step();
-				cnk.buffer[i*2] = pwgen->get_waveout();
-				cnk.buffer[(i*2)+1] = pwgen->get_waveout();
+
+				cnk.buffer[i] = pwgen->get_waveout();
+
+//				cnk.buffer[i*2] = pwgen->get_waveout();
+//				cnk.buffer[(i*2)+1] = pwgen->get_waveout();
 			}
 			pwgen->chunks.push(cnk);
 		}

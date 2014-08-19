@@ -8,7 +8,8 @@
 #include "wgchunk.h"
 
 wgchunk::wgchunk() {
-	for(int i=0; i<(FRAME_SIZE*CHANNELS); i++){
+	//	for(int i=0; i<(FRAME_SIZE*CHANNELS); i++){
+	for(int i=0; i<(FRAME_SIZE); i++){
 		buffer[i] = 0.0;
 	}
 }
