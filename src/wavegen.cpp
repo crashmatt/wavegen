@@ -144,7 +144,7 @@ void *chunk_generator(void *void_ptr)
 
 	printf("Start wave generator\n");
 	while(pwgen->get_exit_request() == false){
-		if(pwgen->chunks.size() < 2){
+		if(pwgen->chunks.size() <= CHUNK_QUEUE_SIZE){
 			pwgen->parse_all();
 
 			for(int i = 0; i < FRAME_SIZE; i++){

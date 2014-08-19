@@ -6,5 +6,6 @@
 #define MAX_CHUNKS	  	3
 #define CHANNELS		2
 #define TABLE_LENGTH	1024
+#define CHUNK_QUEUE_SIZE 2
 
 #endif
