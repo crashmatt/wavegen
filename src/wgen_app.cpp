@@ -44,17 +44,18 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
     (void) inputBuffer; /* Prevent unused variable warning. */
 
     wgchunk* pcnk;
-    if(not wgen->chunks.empty()){
-    	pcnk = &wgen->chunks.front();
+    if(wgen->get_chunks_size() > 0){
+    	pcnk = wgen->get_first_chunk();
 //    	for(i=0; i < CHANNELS*FRAME_SIZE; i++){
     	for(i=0; i < FRAME_SIZE; i++){
     		out[i] = pcnk->buffer[i];
     	}
-    	wgen->chunks.pop();
+    	wgen->pop_chunk();
     }
     else
     {
     	memset(outputBuffer, 0, sizeof(float)*FRAME_SIZE);
+    	fprintf(stderr, "error: no chunks in chunk queue\n");
 //    	memset(outputBuffer, 0, sizeof(float)*CHANNELS*FRAME_SIZE);
     }
 

@@ -13,6 +13,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+//#include <mutex>
 
 using namespace std;
 
@@ -35,13 +36,17 @@ private:
 
 	float modulation_time;
 	queue <string> parseq;
+	pthread_mutex_t parseq_mutex;
+
 	wgwave wave;
 	wgmodulator modulator;
 
 	parser wg_parser;
 
 	/* this variable is our reference to the waveform generator thread */
+	pthread_mutex_t chunks_mutex;
 	pthread_t chunkgen_thread;
+	queue <wgchunk> chunks;
 	bool chunkgen_exit;
 
 public:
@@ -55,7 +60,10 @@ public:
 	bool parse_variable(string varstr, string valstr);
 	bool get_exit_request() {return chunkgen_exit;};
 
-	queue <wgchunk> chunks;
+	int get_chunks_size(void) {return chunks.size();};
+	void push_chunk(wgchunk* pcnk);
+	wgchunk* get_first_chunk();
+	void pop_chunk();
 };
 
 

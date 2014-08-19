@@ -42,9 +42,11 @@ using namespace std;
 void *chunk_generator(void *);
 
 
-
 wavegen::wavegen(){
 	name = "wavegen";
+
+	pthread_mutex_init(&chunks_mutex, NULL);
+	pthread_mutex_init(&parseq_mutex, NULL);
 
 	output = 0.0;
 	phase = 0;
@@ -63,6 +65,7 @@ wavegen::wavegen(){
 
 	chunkgen_exit = false;
 
+
 	/* create a thread executing wave generation */
     if(pthread_create(&chunkgen_thread, NULL, chunk_generator, this)) {
     	fprintf(stderr, "Error creating chunk generator thread\n");
@@ -77,6 +80,8 @@ wavegen::~wavegen(){
     if(pthread_join(chunkgen_thread, NULL)) {
     	fprintf(stderr, "Error joining chunk generation thread\n");
     }
+    pthread_mutex_destroy(&parseq_mutex);
+    pthread_mutex_destroy(&chunks_mutex);
 }
 
 void wavegen::set_frequency(float freq){
@@ -97,18 +102,21 @@ float wavegen::get_waveout() {return output;};
 
 
 void wavegen::push_command(char* line){
+    pthread_mutex_lock(&parseq_mutex);
 	parseq.push(string(line));
+    pthread_mutex_unlock(&parseq_mutex);
 }
 
 void wavegen::parse_all(void){
 	string cmd;
 
+    pthread_mutex_lock(&parseq_mutex);
 	while(parseq.empty() == false){
 		cmd = parseq.front();
 		parseq.pop();
 		wg_parser.parse(cmd);
 	}
-
+    pthread_mutex_unlock(&parseq_mutex);
 }
 
 bool wavegen::parse_variable(string varstr, string valstr){
@@ -125,6 +133,24 @@ bool wavegen::parse_variable(string varstr, string valstr){
 		return false;
 }
 
+void wavegen::push_chunk(wgchunk* pcnk){
+	pthread_mutex_lock(&chunks_mutex);
+	chunks.push(*pcnk);
+	pthread_mutex_unlock(&chunks_mutex);
+}
+
+
+wgchunk* wavegen::get_first_chunk(){
+//	pthread_mutex_lock(&chunks_mutex);
+	return &chunks.front();
+//	pthread_mutex_unlock(&chunks_mutex);
+};
+
+void wavegen::pop_chunk() {
+	pthread_mutex_lock(&chunks_mutex);
+	chunks.pop();
+	pthread_mutex_unlock(&chunks_mutex);
+};
 
 
 void *chunk_generator(void *void_ptr)
@@ -134,18 +160,13 @@ void *chunk_generator(void *void_ptr)
 
 	printf("Start wave generator\n");
 	while(pwgen->get_exit_request() == false){
-		if(pwgen->chunks.size() <= CHUNK_QUEUE_SIZE){
+		if(pwgen->get_chunks_size() <= CHUNK_QUEUE_SIZE){
 			pwgen->parse_all();
-
 			for(int i = 0; i < FRAME_SIZE; i++){
 				pwgen->time_step();
-
 				cnk.buffer[i] = pwgen->get_waveout();
-
-//				cnk.buffer[i*2] = pwgen->get_waveout();
-//				cnk.buffer[(i*2)+1] = pwgen->get_waveout();
 			}
-			pwgen->chunks.push(cnk);
+			pwgen->push_chunk(&cnk);
 		}
 		Pa_Sleep(10);
 	}
